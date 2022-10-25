@@ -1,0 +1,34 @@
+version: 1
+
+parameters:
+  - name: go_module_path
+  - name: go_bin_output
+    default: "."
+  - name: go_bin_name
+  
+stages:
+  - id: fmt
+    disable-lock: true
+    script: |
+      go fmt {{ param.go_module_path }}/...
+
+  - id: vet
+    disable-lock: true
+    script: |
+      go vet {{ param.go_module_path }}/...
+
+  - id: build
+    targets: 
+      - "**/*.go"
+    script: |
+      go build -v -o {{ param.go_bin_output }}/{{ param.go_bin_name }} {{ param.go_module_path }}
+
+  - id: install
+    targets:
+      - "{{ param.go_bin_output }}/{{ param.go_bin_name }}"
+    condition: true
+    depends-on:
+      - build
+    script: |
+      go install {{ param.go_module_path }}
+  
